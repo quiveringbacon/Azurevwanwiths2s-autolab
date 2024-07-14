@@ -17,4 +17,8 @@ You can run these powershell commands in the cloudshell to do that:
 This creates a vwan and a couple of spoke vnets with VM's connected to the vhub and an onprem vnet with a ASAv with a S2S tunnel to the vhub. You'll be prompted for the resource group name to deploy the logicapps in, your public ip and username and password to use for the VM's and a resource group for the lab resources to be in, this resource group will be created and deleted everyday. NSG's are placed on the default subnets of each vnet allowing RDP access from your public ip. This also creates a logic app that will delete the resource group in 24hrs.
 
 The topology of the lab will look like this:
-![wvanlabwithS2S-asa](https://github.com/user-attachments/assets/f5b9686e-c355-4e7c-a383-24dcea9676f8)
+![wvanlabwithS2S-asa](https://github.com/user-attachments/assets/f5b9686e-c355-4e7c-a383-24dcea9676f8)  
+
+You can deploy it all right here:  
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fquiveringbacon%2FAzurevwanwiths2s-autolab%2Fmain%2Flabberapp--vwans2s.json)
