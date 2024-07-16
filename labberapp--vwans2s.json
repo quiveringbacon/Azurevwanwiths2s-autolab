@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "homeip": {
-          "defaultValue": "your home ip address for the nsg",
+          "defaultValue": "your home ip address for JIT access",
           "type": "string"
                    },
         "RG-name": {
@@ -186,24 +186,7 @@
             "location": "[resourceGroup().location]",
             "properties": {
                 "securityRules": [
-                    {
-                        "name": "AllowCidrBlockSSHInbound",
-                        "type": "Microsoft.Network/networkSecurityGroups/securityRules",
-                        "properties": {
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "22",
-                            "sourceAddressPrefix": "[parameters('homeip')]",
-                            "destinationAddressPrefix": "*",
-                            "access": "Allow",
-                            "priority": 100,
-                            "direction": "Inbound",
-                            "sourcePortRanges": [],
-                            "destinationPortRanges": [],
-                            "sourceAddressPrefixes": [],
-                            "destinationAddressPrefixes": []
-                        }
-                    }
+                    
                 ]
             }
         },
@@ -214,24 +197,7 @@
             "location": "[resourceGroup().location]",
             "properties": {
                 "securityRules": [
-                    {
-                        "name": "AllowCidrBlockRDPInbound",
-                        "type": "Microsoft.Network/networkSecurityGroups/securityRules",
-                        "properties": {
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "3389",
-                            "sourceAddressPrefix": "[parameters('homeip')]",
-                            "destinationAddressPrefix": "*",
-                            "access": "Allow",
-                            "priority": 2711,
-                            "direction": "Inbound",
-                            "sourcePortRanges": [],
-                            "destinationPortRanges": [],
-                            "sourceAddressPrefixes": [],
-                            "destinationAddressPrefixes": []
-                        }
-                    }
+                    
                 ]
             }
         },
@@ -741,50 +707,7 @@
                 "destinationAddressPrefixes": []
             }
         },
-        {
-            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
-            "apiVersion": "2023-11-01",
-            "name": "onprem-ssh-default-nsg/AllowCidrBlockSSHInbound",
-            "dependsOn": [
-                "[[resourceId('Microsoft.Network/networkSecurityGroups', 'onprem-ssh-default-nsg')]"
-            ],
-            "properties": {
-                "protocol": "Tcp",
-                "sourcePortRange": "*",
-                "destinationPortRange": "22",
-                "sourceAddressPrefix": "[parameters('homeip')]",
-                "destinationAddressPrefix": "*",
-                "access": "Allow",
-                "priority": 100,
-                "direction": "Inbound",
-                "sourcePortRanges": [],
-                "destinationPortRanges": [],
-                "sourceAddressPrefixes": [],
-                "destinationAddressPrefixes": []
-            }
-        },
-        {
-            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
-            "apiVersion": "2023-11-01",
-            "name": "spoke-vnet-default-nsg/AllowCidrBlockRDPInbound",
-            "dependsOn": [
-                "[[resourceId('Microsoft.Network/networkSecurityGroups', 'spoke-vnet-default-nsg')]"
-            ],
-            "properties": {
-                "protocol": "Tcp",
-                "sourcePortRange": "*",
-                "destinationPortRange": "3389",
-                "sourceAddressPrefix": "[parameters('homeip')]",
-                "destinationAddressPrefix": "*",
-                "access": "Allow",
-                "priority": 2711,
-                "direction": "Inbound",
-                "sourcePortRanges": [],
-                "destinationPortRanges": [],
-                "sourceAddressPrefixes": [],
-                "destinationAddressPrefixes": []
-            }
-        },
+        
         {
             "type": "Microsoft.Network/routeTables/routes",
             "apiVersion": "2023-11-01",
@@ -1725,7 +1648,208 @@
                                     "x-ms-api-version": "2016-06-01"
                                 }
                             }
-                        }
+                        },
+                        "HTTP_initiate_JIT": {
+                                "runAfter": {
+                                    "HTTP_create_JIT": [
+                                        "Succeeded"
+                                    ]
+                                },
+                                "type": "Http",
+                                "inputs": {
+                                    
+                                    "uri": "[concat('https://management.azure.com/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('RG-name'),'/providers/Microsoft.Security/locations/',resourceGroup().location,'/jitNetworkAccessPolicies/labpolicy/initiate?api-version=2020-01-01')]",
+                                    "method": "POST",
+                                    "body": {
+                                        "virtualMachines": [
+                                            {
+                                                
+                                                "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('RG-name'),'/providers/Microsoft.Compute/virtualMachines/asa')]",
+                                                "ports": [
+                                                    {
+                                                        "number": 22,
+                                                        "duration": "PT8H",
+                                                        "allowedSourceAddressPrefix": "[parameters('homeip')]"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                
+                                                "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('RG-name'),'/providers/Microsoft.Compute/virtualMachines/onpremvm')]",
+                                                "ports": [
+                                                    {
+                                                        "number": 3389,
+                                                        "duration": "PT8H",
+                                                        "allowedSourceAddressPrefix": "[parameters('homeip')]"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                
+                                                "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('RG-name'),'/providers/Microsoft.Compute/virtualMachines/spoke1vm')]",
+                                                "ports": [
+                                                    {
+                                                        "number": 3389,
+                                                        "duration": "PT8H",
+                                                        "allowedSourceAddressPrefix": "[parameters('homeip')]"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                
+                                                "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('RG-name'),'/providers/Microsoft.Compute/virtualMachines/spoke2vm')]",
+                                                "ports": [
+                                                    {
+                                                        "number": 3389,
+                                                        "duration": "PT8H",
+                                                        "allowedSourceAddressPrefix": "[parameters('homeip')]"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    
+                                "authentication": {
+                                    "type": "ManagedServiceIdentity"
+                                }
+                                },                                
+                                "runtimeConfiguration": {
+                                    "contentTransfer": {
+                                        "transferMode": "Chunked"
+                                    }
+                                }
+                            },
+                            "HTTP_create_JIT": {
+                                "runAfter": {
+                                    "Create_or_update_a_template_deployment": [
+                                        "Succeeded"
+                                    ]
+                                },
+                                "type": "Http",
+                                "inputs": {
+                                    
+                                    "uri": "[concat('https://management.azure.com/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('RG-name'),'/providers/Microsoft.Security/locations/',resourceGroup().location,'/jitNetworkAccessPolicies/labpolicy?api-version=2020-01-01')]",
+                                    "method": "PUT",
+                                    "body": {
+                                        "kind": "Basic",
+                                        "properties": {
+                                            "virtualMachines": [
+                                                {
+                                                    
+                                                    "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('RG-name'),'/providers/Microsoft.Compute/virtualMachines/asa')]",
+                                                    "ports": [
+                                                        {
+                                                            "number": 22,
+                                                            "protocol": "*",
+                                                            "allowedSourceAddressPrefix": "*",
+                                                            "maxRequestAccessDuration": "PT8H"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    
+                                                    "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('RG-name'),'/providers/Microsoft.Compute/virtualMachines/onpremvm')]",
+                                                    "ports": [
+                                                        {
+                                                            "number": 3389,
+                                                            "protocol": "*",
+                                                            "allowedSourceAddressPrefix": "*",
+                                                            "maxRequestAccessDuration": "PT8H"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    
+                                                    "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('RG-name'),'/providers/Microsoft.Compute/virtualMachines/spoke1vm')]",
+                                                    "ports": [
+                                                        {
+                                                            "number": 3389,
+                                                            "protocol": "*",
+                                                            "allowedSourceAddressPrefix": "*",
+                                                            "maxRequestAccessDuration": "PT8H"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    
+                                                    "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('RG-name'),'/providers/Microsoft.Compute/virtualMachines/spoke2vm')]",
+                                                    "ports": [
+                                                        {
+                                                            "number": 3389,
+                                                            "protocol": "*",
+                                                            "allowedSourceAddressPrefix": "*",
+                                                            "maxRequestAccessDuration": "PT8H"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "requests": [
+                                                {
+                                                    "virtualMachines": [
+                                                        {
+                                                            
+                                                            "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('RG-name'),'/providers/Microsoft.Compute/virtualMachines/asa')]",
+                                                            "ports": [
+                                                                {
+                                                                    "number": 22,
+                                                                    "allowedSourceAddressPrefix": "[parameters('homeip')]",
+                                                                    "endTimeUtc": "2018-05-17T09:06:45.5691611Z",
+                                                                    "status": "Initiated",
+                                                                    "statusReason": "UserRequested"
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            
+                                                            "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('RG-name'),'/providers/Microsoft.Compute/virtualMachines/onpremvm')]",
+                                                            "ports": [
+                                                                {
+                                                                    "number": 3389,
+                                                                    "allowedSourceAddressPrefix": "[parameters('homeip')]",
+                                                                    "endTimeUtc": "2018-05-17T09:06:45.5691611Z",
+                                                                    "status": "Initiated",
+                                                                    "statusReason": "UserRequested"
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            
+                                                            "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('RG-name'),'/providers/Microsoft.Compute/virtualMachines/spoke1vm')]",
+                                                            "ports": [
+                                                                {
+                                                                    "number": 3389,
+                                                                    "allowedSourceAddressPrefix": "[parameters('homeip')]",
+                                                                    "endTimeUtc": "2018-05-17T09:06:45.5691611Z",
+                                                                    "status": "Initiated",
+                                                                    "statusReason": "UserRequested"
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            
+                                                            "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('RG-name'),'/providers/Microsoft.Compute/virtualMachines/spoke2vm')]",
+                                                            "ports": [
+                                                                {
+                                                                    "number": 3389,
+                                                                    "allowedSourceAddressPrefix": "[parameters('homeip')]",
+                                                                    "endTimeUtc": "2018-05-17T09:06:45.5691611Z",
+                                                                    "status": "Initiated",
+                                                                    "statusReason": "UserRequested"
+                                                                }
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "startTimeUtc": "2018-05-17T08:06:45.5691611Z"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    
+                                "authentication": {
+                                    "type": "ManagedServiceIdentity"
+                                }
+								}
+							}
                     },
                     "outputs": {}
                 },
@@ -1734,7 +1858,7 @@
                         "value": {
                             "arm": {
                                 "id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/arm')]",
-                                //"connectionId": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/Microsoft.Web/connections/arm')]",
+                                
                                 "connectionId": "[resourceId('Microsoft.Web/connections', 'arm')]",
                                 "connectionName": "arm",
                                 "connectionProperties": {
@@ -1815,7 +1939,7 @@
                                     }
                                 },
                                 "method": "delete",
-                                //"path": "[concat('/subscriptions/@{encodeURIComponent(''',subscription().subscriptionId,''')}/resourcegroups/@{encodeURIComponent(''RG-autolab'')}')]",
+                                
                                 "path": "[concat('/subscriptions/@{encodeURIComponent(''',subscription().subscriptionId,''')}/resourcegroups/@{encodeURIComponent(''',parameters('RG-name'),''')}')]",
                                 "queries": {
                                     "x-ms-api-version": "2016-06-01"
@@ -1830,7 +1954,7 @@
                         "value": {
                             "arm": {
                                 "id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/arm')]",
-                                //"connectionId": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/Microsoft.Web/connections/arm-1')]",
+                                
                                 "connectionId": "[resourceId('Microsoft.Web/connections', 'arm')]",
                                 "connectionName": "arm",
                                 "connectionProperties": {
