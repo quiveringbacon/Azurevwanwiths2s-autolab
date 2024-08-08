@@ -906,7 +906,7 @@
                     "computerName": "asa",
                     "adminUsername": "[parameters('VM-username')]",
                     "adminPassword": "[parameters('VM-password')]",                    
-                    "customData": "[[base64(concat('int gi0/0\nno shut\nnameif inside\nip address dhcp\nroute inside 192.168.0.0 255.255.0.0 192.168.3.1\ncrypto ikev2 enable management\ncrypto ikev2 policy 50\nencryption aes-256\nintegrity sha\ngroup 14\nprf sha\nlifetime seconds 86400\ncrypto ipsec ikev2 ipsec-proposal vpn\nprotocol esp encryption aes-256\nprotocol esp integrity sha-1\ncrypto ipsec profile vpn-profile\nset ikev2 ipsec-proposal vpn\ninterface Tunnel1\nnameif vpntunnel\nip address 172.16.1.1 255.255.255.252\ntunnel source interface management\ntunnel destination ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0],'\ntunnel mode ipsec ipv4\ntunnel protection ipsec profile vpn-profile\ngroup-policy vpn-tunnel internal\ngroup-policy vpn-tunnel attributes\nvpn-tunnel-protocol ikev2\ntunnel-group ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0],' type ipsec-l2l\ntunnel-group ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0], ' general-attributes\ndefault-group-policy vpn-tunnel\ntunnel-group ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0], ' ipsec-attributes\nikev2 remote-authentication pre-shared-key vpn123\nikev2 local-authentication pre-shared-key vpn123\nrouter bgp 65002\nbgp log-neighbor-changes\naddress-family ipv4 unicast\nneighbor ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].defaultBgpIpAddresses[0], ' remote-as 65515\nneighbor ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].defaultBgpIpAddresses[0], ' ebgp-multihop 10\nneighbor ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].defaultBgpIpAddresses[0], ' activate\nnetwork 192.168.0.0 mask 255.255.0.0\nexit-address-family\nroute vpntunnel ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].defaultBgpIpAddresses[0], ' 255.255.255.255 8.8.8.8'))]",
+                    "customData": "[[base64(concat('int gi0/0\nno shut\nnameif inside\nip address dhcp\nroute inside 192.168.0.0 255.255.0.0 192.168.3.1\ncrypto ikev2 enable management\ncrypto ikev2 policy 50\nencryption aes-256\nintegrity sha256\ngroup 14\nprf sha256\nlifetime seconds 86400\ncrypto ipsec ikev2 ipsec-proposal vpn\nprotocol esp encryption aes-256\nprotocol esp integrity sha-1\ncrypto ipsec profile vpn-profile\nset ikev2 ipsec-proposal vpn\ninterface Tunnel1\nnameif vpntunnel\nip address 172.16.1.1 255.255.255.252\ntunnel source interface management\ntunnel destination ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0],'\ntunnel mode ipsec ipv4\ntunnel protection ipsec profile vpn-profile\ngroup-policy vpn-tunnel internal\ngroup-policy vpn-tunnel attributes\nvpn-tunnel-protocol ikev2\ntunnel-group ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0],' type ipsec-l2l\ntunnel-group ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0], ' general-attributes\ndefault-group-policy vpn-tunnel\ntunnel-group ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0], ' ipsec-attributes\nikev2 remote-authentication pre-shared-key vpn123\nikev2 local-authentication pre-shared-key vpn123\nrouter bgp 65002\nbgp log-neighbor-changes\naddress-family ipv4 unicast\nneighbor ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].defaultBgpIpAddresses[0], ' remote-as 65515\nneighbor ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].defaultBgpIpAddresses[0], ' ebgp-multihop 10\nneighbor ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].defaultBgpIpAddresses[0], ' activate\nnetwork 192.168.0.0 mask 255.255.0.0\nexit-address-family\nroute vpntunnel ', reference('hubvpngw').bgpSettings.bgpPeeringAddresses[0].defaultBgpIpAddresses[0], ' 255.255.255.255 8.8.8.8'))]",
                     "linuxConfiguration": {
                         "disablePasswordAuthentication": false,
                         "ssh": {
@@ -1457,17 +1457,17 @@
                                         },
                                         "connectionBandwidth": 10,
                                         "ipsecPolicies": [
-						{
+                                            {
                                                 "saLifeTimeSeconds": 27000,
                                                 "saDataSizeKilobytes": 0,
                                                 "ipsecEncryption": "AES256",
-                                                "ipsecIntegrity": "SHA1",
+                                                "ipsecIntegrity": "SHA256",
                                                 "ikeEncryption": "AES256",
-                                                "ikeIntegrity": "SHA1",
+                                                "ikeIntegrity": "SHA256",
                                                 "dhGroup": "DHGroup14",
                                                 "pfsGroup": "None"
                                             }
-					],
+                                        ],
                                         "vpnConnectionProtocolType": "IKEv2",
                                         "sharedKey": "vpn123",
                                         "enableBgp": true,
